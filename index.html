@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#101e38">
+<title>تحدّي القراية</title>
+<style>
+:root{--navy:#101e38;--mint:#77e5c0;--line:#d9e1ec;--muted:#61718a;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;color:#17233a}
+header{background:var(--navy);color:white;padding:22px 18px 18px;border-radius:0 0 24px 24px}
+.brand{display:flex;gap:12px;align-items:center}.logo{background:var(--mint);color:var(--navy);border-radius:13px;padding:12px;font-size:24px}
+h1{font-size:23px;margin:0 0 4px}header p{margin:0;color:#c2d0e5;font-size:13px}
+main{max-width:620px;margin:auto;padding:16px}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 4px 16px #15294b08}
+h2{font-size:18px;margin:0 0 12px}.hint{color:var(--muted);font-size:13px;line-height:1.6}
+label{font-size:13px;color:var(--muted);display:block;margin:12px 0 6px}
+input,select{width:100%;border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;background:white;color:#17233a}
+button{border:0;border-radius:12px;padding:13px 15px;font-size:15px;font-weight:700;cursor:pointer;background:var(--navy);color:white;width:100%;margin-top:10px}
+button.secondary{background:#eaf0f8;color:var(--navy)}button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:9px}.row>*{flex:1;min-width:0}.hidden{display:none!important}
+.status{padding:10px 12px;background:#edf4ff;border-radius:10px;color:#23476f;font-size:13px;margin-top:10px;line-height:1.5}
+.code{font-size:25px;letter-spacing:3px;font-weight:800;text-align:center;background:#eef9f4;border-radius:12px;padding:14px;color:#126747;direction:ltr}
+.question{font-size:20px;font-weight:750;line-height:1.5;margin:14px 0}
+.answer{background:white;color:#17233a;border:1px solid var(--line);text-align:right;font-weight:600}
+.answer.chosen{border:2px solid #16845b;background:#eaf8f1}
+.answer.correct{border:2px solid #16845b;background:#eaf8f1}.answer.wrong{border:2px solid #c04c4c;background:#fff0f0}
+.scoreboard{display:flex;gap:10px}.player{flex:1;background:#f4f7fb;border-radius:12px;padding:12px;text-align:center}.player strong{display:block;font-size:24px;margin:4px}
+footer{text-align:center;color:#718096;font-size:12px;padding:18px}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">⚔️</div><div><h1>تحدّي القراية</h1><p>السنة الثانية ثانوي • علوم تجريبية</p></div></div></header>
+<main>
+<section class="card" id="setup">
+<h2>1. حضّر التحدّي</h2>
+<p class="hint">كل واحد يفتح نفس الصفحة في هاتفه. واحد ينشئ الغرفة، والثاني يدخل بالرمز. لازم الإنترنت يكون شغال عند الزوج.</p>
+<label for="name">اسمك داخل اللعبة</label><input id="name" maxlength="18" placeholder="مثال: حمادة">
+<label for="subject">المادة</label><select id="subject"><option value="math">الرياضيات — الدوال</option><option value="science">العلوم الطبيعية — المنعكس العضلي</option><option value="physics">الفيزياء — الحركة والقوى</option></select>
+<div class="row"><button id="create">إنشاء غرفة</button><button id="joinToggle" class="secondary">عندي رمز</button></div>
+<div id="joinBox" class="hidden"><label for="roomInput">رمز غرفة صاحبك</label><input id="roomInput" placeholder="الصق معرّف الغرفة كاملًا هنا" autocapitalize="off" autocomplete="off" spellcheck="false"><button id="join">دخول للتحدّي</button></div>
+<div id="roomInfo" class="hidden"><p class="hint">ابعث معرّف الغرفة كاملًا لصاحبك. يقدر يفتحه من Android أو iPhone.</p><div class="code" id="roomCode" style="font-size:14px;letter-spacing:0;overflow-wrap:anywhere;user-select:text"></div><button id="copy" class="secondary">نسخ معرّف الغرفة</button></div>
+<div class="status" id="status">الحالة: مازال ما اتصلتش.</div>
+</section>
+<section class="card hidden" id="lobby"><h2>2. اللاعبين</h2><div class="scoreboard"><div class="player"><span id="hostName">اللاعب الأول</span><strong id="hostScore">0</strong><small>نقطة</small></div><div class="player"><span id="guestName">في انتظار الصديق</span><strong id="guestScore">0</strong><small>نقطة</small></div></div><button id="start" disabled>ابدأ التحدّي</button></section>
+<section class="card hidden" id="game"><div class="hint" id="progress">السؤال 1</div><div class="question" id="question"></div><div id="answers"></div><div class="status" id="answerStatus">اختار إجابة.</div></section>
+<section class="card hidden" id="result"><h2 id="resultTitle">النتيجة النهائية</h2><div class="scoreboard"><div class="player"><span id="resultHost"></span><strong id="finalHost">0</strong></div><div class="player"><span id="resultGuest"></span><strong id="finalGuest">0</strong></div></div><p class="hint" id="resultText"></p><button id="again">تحدّي جديد</button></section>
+<footer>نسخة تجريبية للتحدّي المباشر. الأسئلة الحالية أمثلة تعليمية، وليست بنك المنهاج الكامل.</footer>
+</main>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const banks={
+ math:[
+ {q:"إذا كانت f(x)=2x+3، فما قيمة f(2)؟",a:["5","7","4","6"],c:1},
+ {q:"مجال تعريف f(x)=1/x هو:",a:["ℝ","ℝ ما عدا 0","[0,+∞[","ℝ⁺"],c:1},
+ {q:"إذا كانت f(x)=x²، فإن f(-3) تساوي:",a:["-9","6","9","-6"],c:2},
+ {q:"حل المعادلة 3x−6=0 هو:",a:["x=−2","x=0","x=2","x=3"],c:2},
+ {q:"إذا كانت f(x)=x+4، فإن f(0) تساوي:",a:["0","1","4","−4"],c:2}
+ ],
+ science:[
+ {q:"أين توجد المستقبلات الحسية للمنعكس العضلي؟",a:["في الوتر فقط","في العضلة","في المخيخ","في الجلد فقط"],c:1},
+ {q:"ما المسار الذي تسلكه الرسالة العصبية الحسية؟",a:["النخاع إلى العضلة","المستقبل الحسي إلى المركز العصبي","العضلة إلى الوتر فقط","المخ إلى الجلد مباشرة"],c:1},
+ {q:"ما المركز العصبي الأساسي للمنعكس العضلي الشوكي؟",a:["النخاع الشوكي","القشرة البصرية","القلب","المخيخ فقط"],c:0},
+ {q:"العضو المنفذ للاستجابة في المنعكس العضلي هو:",a:["العصب الحسي","العضلة","العين","الجلد"],c:1},
+ {q:"المنعكس العضلي استجابة:",a:["إرادية دائماً","سريعة ولا إرادية","بطيئة دائماً","لا تحتاج جهازاً عصبياً"],c:1}
+ ],
+ physics:[
+ {q:"وحدة قياس السرعة في النظام الدولي هي:",a:["m","s","m/s","N"],c:2},
+ {q:"إذا قطع جسم 20 m في 4 s، فسرعته المتوسطة:",a:["5 m/s","16 m/s","24 m/s","80 m/s"],c:0},
+ {q:"وحدة قياس القوة هي:",a:["الجول","النيوتن","الواط","المتر"],c:1},
+ {q:"تغيّر السرعة مع الزمن يعبّر عن:",a:["التسارع","المسافة فقط","الكتلة","الحجم"],c:0},
+ {q:"إذا كانت محصلة القوى المؤثرة على جسم ساكن تساوي صفراً، فإن الجسم:",a:["يتسارع حتماً","يبقى ساكناً إذا لم تتغير الظروف","تزداد كتلته","تختفي جاذبيته"],c:1}
+ ]};
+const $=id=>document.getElementById(id);
+let peer=null,conn=null,isHost=false,connected=false,players={host:"",guest:""},scores={host:0,guest:0},qIndex=0,answered=false,roundAnswers={},bank=[],subject="math";
+function status(t){$("status").textContent=t}
+function show(id){$(id).classList.remove("hidden")}function hide(id){$(id).classList.add("hidden")}
+function setPlayers(){ $("hostName").textContent=players.host||"اللاعب الأول";$("guestName").textContent=players.guest||"في انتظار الصديق";$("hostScore").textContent=scores.host;$("guestScore").textContent=scores.guest;}
+function setupPeer(){if(!window.Peer){status("تعذّر تحميل خدمة الاتصال. تأكد أن الإنترنت شغال ثم حدّث الصفحة.");return false}
+peer=new Peer(undefined,{debug:0});
+peer.on("error",e=>{const messages={unavailable_id:"معرّف الغرفة غير متاح. أنشئ غرفة جديدة.",peer_unavailable:"ما لقيناش الغرفة. تأكد من المعرّف وأن صاحبك ما زال فاتح الصفحة.",network:"مشكلة في الإنترنت. جرّبوا شبكة أخرى.",server_error:"خدمة الاتصال ما تجاوبتش الآن. جرّبوا لاحقًا."};status("مشكلة اتصال: "+(messages[e.type]||"تأكد من الإنترنت ومعرّف الغرفة، ثم جرّبوا من جديد."));});
+peer.on("disconnected",()=>status("انقطع الاتصال بخدمة الغرف؛ حاول إعادة الاتصال."));
+peer.on("close",()=>status("انغلق الاتصال."));
+peer.on("connection",c=>{if(!isHost)return;c.on("open",()=>{if(conn&&conn.open){c.close();return}conn=c;connected=true;players.guest=c.metadata?.name||"الصديق";setPlayers();show("lobby");$("start").disabled=false;status("صاحبك اتصل! تقدروا تبدأوا.");send({type:"hello",host:players.host,guest:players.guest,subject});});wire(c);});
+return true}
+function wire(c){c.on("data",m=>handle(m));c.on("close",()=>{connected=false;status("انقطع اتصال صاحبك. جرّبوا تحديث الصفحة والدخول من جديد.");$("start").disabled=true;});c.on("error",()=>status("صار خطأ في اتصال اللاعبين."));}
+function send(m){if(conn&&conn.open){try{conn.send(m)}catch(e){status("ما قدرناش نبعثوا البيانات. عاودوا الاتصال.");}}}
+$("create").onclick=()=>{if(!$("name").value.trim()){status("اكتب اسمك أولاً.");return}isHost=true;players.host=$("name").value.trim();subject=$("subject").value;status("نحضّر الغرفة...");if(!setupPeer())return;peer.on("open",id=>{$("roomCode").textContent=id;$("roomInfo").dataset.fullid=id;show("roomInfo");show("lobby");setPlayers();status("الغرفة جاهزة. ابعث الرمز لصاحبك وخليه يدخل.");});};
+$("joinToggle").onclick=()=>show("joinBox");
+$("join").onclick=()=>{if(!$("name").value.trim()){status("اكتب اسمك أولاً.");return}const code=$("roomInput").value.trim();if(!code){status("الصق معرّف الغرفة الذي أرسله صاحبك.");return}isHost=false;players.guest=$("name").value.trim();subject=$("subject").value;status("نحاول نتصل بصاحبك...");if(!setupPeer())return;peer.on("open",()=>{status("جارٍ الاتصال بالغرفة...");conn=peer.connect(code,{metadata:{name:players.guest},reliable:true});wire(conn);conn.on("open",()=>{connected=true;show("lobby");status("اتصلت بالغرفة.");send({type:"join",name:players.guest,subject});});});};
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText($("roomInfo").dataset.fullid||$("roomCode").textContent);status("تم نسخ معرّف الغرفة. ابعثه لصاحبك.");}catch(e){status("انسخ معرّف الاتصال الكامل يدوياً من رمز الغرفة إن توفر.");}};
+function handle(m){
+ if(!m||!m.type)return;
+ if(m.type==="join"&&isHost){players.guest=m.name||"الصديق";setPlayers();$("start").disabled=false;status("صاحبك دخل الغرفة.");send({type:"hello",host:players.host,guest:players.guest,subject});}
+ if(m.type==="hello"){players.host=m.host;players.guest=m.guest;subject=m.subject||subject;$("subject").value=subject;setPlayers();show("lobby");status("متصلين! استنّى صاحب الغرفة يبدأ.");}
+ if(m.type==="question"){qIndex=m.index;bank=m.bank; scores=m.scores;roundAnswers={};renderQuestion(m.item,m.total);setPlayers();show("game");hide("result");}
+ if(m.type==="answer"&&isHost){roundAnswers.guest=m.choice;resolveIfReady();}
+ if(m.type==="reveal"){scores=m.scores;setPlayers();$("answerStatus").textContent=m.message;if(m.finished){showResult();}else{setTimeout(()=>{if(isHost)nextQuestion()},1600)}}
+ if(m.type==="restart"){if(isHost)return;hide("result");show("lobby");status("صاحبك يحضّر جولة جديدة.");}
+}
+$("start").onclick=()=>{if(!isHost||!connected)return;bank=banks[subject];scores={host:0,guest:0};qIndex=0;send({type:"start",subject});startQuestion();};
+function startQuestion(){roundAnswers={};answered=false;send({type:"question",index:qIndex,bank,total:bank.length,item:bank[qIndex],scores});renderQuestion(bank[qIndex],bank.length);show("game");hide("result");setPlayers();}
+function renderQuestion(item,total){answered=false;$("progress").textContent=`السؤال ${qIndex+1} من ${total}`;$("question").textContent=item.q;$("answerStatus").textContent="اختار إجابة واحدة.";const area=$("answers");area.innerHTML="";item.a.forEach((ans,i)=>{let b=document.createElement("button");b.className="answer";b.textContent=ans;b.onclick=()=>choose(i,b);area.appendChild(b)});}
+function choose(i,btn){if(answered)return;answered=true;document.querySelectorAll(".answer").forEach(b=>b.disabled=true);btn.classList.add("chosen");$("answerStatus").textContent="تسجّلت إجابتك. استنّى النتيجة.";if(isHost){roundAnswers.host=i;resolveIfReady()}else send({type:"answer",choice:i});}
+function resolveIfReady(){if(!isHost||roundAnswers.host===undefined||roundAnswers.guest===undefined)return;const item=bank[qIndex];if(roundAnswers.host===item.c)scores.host+=10;if(roundAnswers.guest===item.c)scores.guest+=10;const finished=qIndex===bank.length-1;const message=`إجابتك: ${roundAnswers.host===item.c?"صحيحة":"خاطئة"} • إجابة صاحبك: ${roundAnswers.guest===item.c?"صحيحة":"خاطئة"}`;send({type:"reveal",scores,message,finished});$("answerStatus").textContent=message;setPlayers();if(finished)showResult();else setTimeout(nextQuestion,1700);}
+function nextQuestion(){qIndex++;if(qIndex>=bank.length){showResult();return}startQuestion();}
+function showResult(){hide("game");show("result");$("resultHost").textContent=players.host;$("resultGuest").textContent=players.guest;$("finalHost").textContent=scores.host;$("finalGuest").textContent=scores.guest;$("resultText").textContent=scores.host===scores.guest?"تعادل! لازم جولة فاصلة.":(scores.host>scores.guest?players.host:players.guest)+" هو الرابح!";}
+$("again").onclick=()=>{if(isHost){hide("result");show("lobby");status("تقدر تبدأ تحدّي جديد.");}else status("اطلب من صاحب الغرفة يبدأ جولة جديدة.");};
+window.addEventListener("beforeunload",()=>{try{if(conn)conn.close();if(peer)peer.destroy()}catch(e){}});
+</script>
+</body></html>
